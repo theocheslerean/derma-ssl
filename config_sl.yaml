@@ -1,0 +1,94 @@
+seed_everything: 224
+trainer:
+  accelerator: auto
+  strategy: auto
+  devices: 1
+  num_nodes: 1
+  precision: 32
+  logger:
+    class_path: pytorch_lightning.loggers.tensorboard.TensorBoardLogger
+    init_args:
+      save_dir: './'
+      # name: lightning_logs
+      name: pad-ufes-fitspatrick
+      prefix: ''
+      # version: 'debug-imagenet'
+      default_hp_metric: false
+      log_graph: true
+    dict_kwargs:
+      max_queue: 100
+  callbacks:
+    - class_path: ModelCheckpoint
+      init_args:
+        monitor: 'val/auc'
+        save_top_k: 1
+        mode: 'max'
+        auto_insert_metric_name: false
+        save_last: true
+        filename: 'epoch={epoch}-val_auc={val/auc:.4f}'
+    - class_path: LearningRateMonitor
+      init_args:
+        logging_interval: 'epoch'
+    - class_path: TQDMProgressBar
+      init_args:
+        refresh_rate: 10
+  max_epochs: -1
+  limit_train_batches: null
+  limit_val_batches: null
+  limit_test_batches: null
+  limit_predict_batches: null
+  val_check_interval: null
+  check_val_every_n_epoch: 1
+  num_sanity_val_steps: 0
+  log_every_n_steps: null
+  enable_checkpointing: true
+  enable_progress_bar: true
+  enable_model_summary: null
+  accumulate_grad_batches: 1
+  gradient_clip_val: null
+  gradient_clip_algorithm: null
+  deterministic: null
+  benchmark: null
+  inference_mode: true
+  use_distributed_sampler: true
+model:
+  class_path: model.SL_Model
+  init_args:
+    vit_type: vit_tiny_patch16_224
+    learning_rate: 1e-4
+    ssl_pretrained: true
+data:
+  dataset_name: pad-ufes-new-clean-valtest
+  batch_size: 16
+  resolution: 224
+  self_supervised: false
+  transforms:
+    class_path: albumentations.Compose
+    init_args:
+      transforms:
+        - class_path: albumentations.RandomResizedCrop
+          init_args:
+            height: 224
+            width: 224
+            p: 0.5
+        - class_path: albumentations.VerticalFlip
+          init_args:
+            p: 0.5
+        - class_path: albumentations.HorizontalFlip
+          init_args:
+            p: 0.5
+        - class_path: albumentations.ShiftScaleRotate
+          init_args:
+            shift_limit: 0.25
+            scale_limit: 0.5
+            rotate_limit: 45
+            p: 0.5
+        - class_path: albumentations.RandomBrightnessContrast
+          init_args:
+            p: 0.5
+        - class_path: albumentations.Normalize
+          init_args:
+            mean: [0.485, 0.456, 0.406]
+            std: [0.229, 0.224, 0.225]
+            always_apply: true
+ckpt_path: null

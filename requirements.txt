@@ -1,0 +1,11 @@
+torch
+pandas
+numpy
+opencv-python
+scikit-image
+pytorch-lightning
+pytorch-metric-learning
+albumentations
+jsonargparse[signatures]
+timm
+tensorboard
