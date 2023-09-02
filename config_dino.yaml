@@ -7,19 +7,19 @@ trainer:
     #   process_group_backend: gloo
   devices: 1
   num_nodes: 1
-  precision: 32
+  precision: 16
   logger:
     class_path: pytorch_lightning.loggers.tensorboard.TensorBoardLogger
     init_args:
       save_dir: './'
-      name: debug
+      name: dino_test
       # name: pretraining-resnet
       prefix: ''
-      # version: 'fitspatrick-dp.25'
+      version: 'sd198-bs256-in21k-fp16-do03-lr1e5'
       default_hp_metric: false
       log_graph: true
     dict_kwargs:
-      max_queue: 100
+      max_queue: 10
   callbacks:
     - class_path: ModelCheckpoint
       init_args:
@@ -34,8 +34,8 @@ trainer:
         logging_interval: 'epoch'
     - class_path: TQDMProgressBar
       init_args:
-        refresh_rate: 10
-  max_epochs: 1
+        refresh_rate: 100
+  max_epochs: -1
   limit_train_batches: null
   limit_val_batches: null
   limit_test_batches: null
@@ -53,48 +53,22 @@ trainer:
   deterministic: null
   benchmark: null
   inference_mode: true
-  use_distributed_sampler: true
+  use_distributed_sampler: false
 model:
-  class_path: model.SSL_Model
+  class_path: model.DINO_Model
   init_args:
-    vit_type: vit_tiny_patch16_224
-    learning_rate: 1e-4
-    weight_decay: 1e-4
+    vit_type: dino_vitb16
+    learning_rate: 1e-5
+    weight_decay: 1e-2
     loss_temperature: 0.05
 data:
-  # dataset_name: isic
-  dataset_name: fitspatrick-17k
+  # dataset_name: sd-198
+  # dataset_name: fitspatrick-17k
   # dataset_name: comb
-  batch_size: 8
+  dataset_name: isic
+  batch_size: 64
   resolution: 224
   self_supervised: true
   transforms:
-    class_path: albumentations.Compose
-    init_args:
-      transforms:
-        - class_path: albumentations.RandomResizedCrop
-          init_args:
-            height: 224
-            width: 224
-            p: 0.25
-        - class_path: albumentations.VerticalFlip
-          init_args:
-            p: 0.75
-        - class_path: albumentations.HorizontalFlip
-          init_args:
-            p: 0.75
-        - class_path: albumentations.ShiftScaleRotate
-          init_args:
-            shift_limit: 0.25
-            scale_limit: 0.5
-            rotate_limit: 45
-            p: 0.75
-        - class_path: albumentations.RandomBrightnessContrast
-          init_args:
-            p: 0.5
-        - class_path: albumentations.Normalize
-          init_args:
-            mean: [0.485, 0.456, 0.406]
-            std: [0.229, 0.224, 0.225]
-            always_apply: true
+    class_path: lightly.transforms.dino_transform.DINOTransform
 ckpt_path: null
