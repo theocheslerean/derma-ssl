@@ -24,7 +24,7 @@ trainer:
         mode: 'max'
         auto_insert_metric_name: false
         save_last: true
-        filename: 'epoch={epoch}-val_auc={val/auc:.4f}'
+        filename: 'epoch={epoch}-val_auc={val/auc:.4f}-val_acc={val/acc:.4f}-val_rec={val/rec:.4f}-val_pre={val/pre:.4f}'
     - class_path: LearningRateMonitor
       init_args:
         logging_interval: 'epoch'
@@ -51,16 +51,14 @@ trainer:
   inference_mode: true
   use_distributed_sampler: true
 model:
-  class_path: model.DINO_SL_Model_v2
-  init_args:
-    learning_rate: 1e-4
-    ssl_pretrained: false
+  learning_rate: 1e-4
+  ssl_pretrained: false
 data:
-  dataset_name: pad-ufes-new-full
+  dataset_name: pad
+  root: /space/derma-data/pad-ufes-new-full/
   batch_size: 16
   resolution: 224
   sample_size: 40
-  self_supervised: false
   transforms:
     class_path: albumentations.Compose
     init_args:
